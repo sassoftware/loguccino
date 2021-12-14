@@ -11,7 +11,7 @@ public class BaseSubcommand {
     @Mixin
     LoggingMixin loggingMixin;
 
-    @Option(names = "--failure-strategy", description = {"How to proceed scanning additional directories if there is an error.", "Default value: ${DEFAULT-VALUE}", "Valid values: ${COMPLETION-CANDIDATES}"}, defaultValue = "IGNORE_FAILURES")
+    @Option(names = "--failure-strategy", description = {"How to proceed scanning additional directories if there is an error.", "Default value: ${DEFAULT-VALUE}", "Valid values: ${COMPLETION-CANDIDATES}"}, defaultValue = "CANCEL_TASKS")
     TaskFailureStrategy taskFailureStrategy;
 
     @Option(names = "--no-pretty", description = "Enable ansi console animations", negatable = true)

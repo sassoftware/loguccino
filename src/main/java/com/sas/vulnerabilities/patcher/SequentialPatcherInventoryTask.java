@@ -4,16 +4,14 @@ import com.opencsv.CSVWriter;
 import com.sas.vulnerabilities.model.VulnerableArchive;
 import lukfor.progress.tasks.ITaskRunnable;
 import lukfor.progress.tasks.monitors.ITaskMonitor;
-import org.tinylog.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 
-import static com.sas.vulnerabilities.utils.Utils.adapt;
+import static com.sas.vulnerabilities.utils.Utils.withoutColon;
 import static com.sas.vulnerabilities.utils.Utils.checksum;
 
 public class SequentialPatcherInventoryTask implements ITaskRunnable {
@@ -65,7 +63,7 @@ public class SequentialPatcherInventoryTask implements ITaskRunnable {
 
 		// create new {temps_dir}/1/pub/hyper_noJRE.tar.gz (single cve patch) by reading the original /pub/hyper_noJRE.tar.gz file and patching it
 		// only for blah.jar vulnerability, using the tmp location ${temps_dir}/1 to unpack all intermediate temp files
-		Path patchedSingleCve = Paths.get(currentIterationTemp.toString(), adapt(affectedFile));
+		Path patchedSingleCve = Paths.get(currentIterationTemp.toString(), withoutColon(affectedFile));
 		Files.createDirectories(patchedSingleCve.getParent());
 		patcher.patchSingleCVE(
 				v.getNestedPath(),
@@ -78,22 +76,19 @@ public class SequentialPatcherInventoryTask implements ITaskRunnable {
 		String patchedChecksum = checksum(MessageDigest.getInstance("MD5"), new File(patchedSingleCve.toString()));
 
 		// switch places. move original (affected) to backup location, and move patched (with single cve) to original location
-		Path originalFileBackup = Paths.get(currentIterationOrig.toString(), adapt(affectedFile));
+		Path originalFileBackup = Paths.get(currentIterationOrig.toString(), withoutColon(affectedFile));
 		Files.createDirectories(originalFileBackup.getParent());
 		Files.move(affectedFilePath, originalFileBackup);
 		Files.move(patchedSingleCve, affectedFilePath);
 
-		try {
-			csvWriter.writeNext(new String[]{originalFileBackup.toString(), affectedFilePath.toString(), originalChecksum, patchedChecksum});
-			csvWriter.flush();
-		} catch (IOException e) {
-			Logger.error(e, "Error writing to csv output");
-		}
+		// propagate error if failed to write to csv and cancel the task
+		csvWriter.writeNext(new String[]{originalFileBackup.toString(), affectedFilePath.toString(), originalChecksum, patchedChecksum});
+		csvWriter.flush();
 	}
 
 	@Override
 	public void run(ITaskMonitor monitor) throws Exception {
-		monitor.begin(String.format("Patching %s, path %s", v.getAffectedFile(), v.getNestedPath()));
+		monitor.begin(String.format("Patching %s", v.getNestedPath()));
 
 		runSingleCveInventoryPath();
 

@@ -2,6 +2,7 @@ package com.sas.vulnerabilities;
 
 import static com.sas.vulnerabilities.utils.Constants.TIMESTAMP;
 
+import com.sas.vulnerabilities.model.PatchedVulnerability;
 import com.sas.vulnerabilities.model.VulnerableArchive;
 import com.sas.vulnerabilities.patcher.SequentialPatcherInventoryService;
 import com.sas.vulnerabilities.utils.ArchiveStreamUtils;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -51,12 +53,19 @@ public class PatchCommand extends BaseSubcommand implements Callable<Integer> {
 	@Option(names = "--no-compress", negatable = true, description = {"Enable/Disable compression for any zip file (including jar, war, ear, ...).", "Default value: --compress"})
 	boolean compress = true;
 
-	@Parameters(index = "0", description = "Path of inventory (csv file) produced by running loguccino scan")
+	@Option(names = {"-r", "--revert"}, description = {"Reverts previous patch provided by patch csv results."})
+	boolean revert = false;
+
+	@Parameters(index = "0", description = "Path of inventory (csv file) produced by running loguccino scan or patch to patch output csv if --revert specified.")
 	String inventory;
 
 	@Override
 	public Integer call() {
-		return patchFromInventory();
+		if (!revert) {
+			return patchFromInventory();
+		} else {
+			return revertInventory();
+		}
 	}
 
 	public static void main(String[] args) {
@@ -86,7 +95,38 @@ public class PatchCommand extends BaseSubcommand implements Callable<Integer> {
 		}
 
 		try {
-			new SequentialPatcherInventoryService(allVulnerabilities, patchStore).start(pretty, taskFailureStrategy);
+			new SequentialPatcherInventoryService(patchStore)
+					.patchInventory(allVulnerabilities, pretty, taskFailureStrategy);
+		} catch (IOException e) {
+			Logger.tag("SYSTEM").error(e, "Error initializing patcher ");
+		}
+		return 0;
+	}
+
+	private Integer revertInventory() {
+		ArchiveStreamUtils.setCompress(compress);
+		Logger.tag("SYSTEM").info("Started revert from inventory using patch results " + inventory);
+
+		Path inventoryPath = Paths.get(inventory);
+		if (Files.notExists(inventoryPath) || !Files.isRegularFile(inventoryPath)) {
+			throw new ParameterException(spec.commandLine(), "Invalid patch results path, expecting patch csv file.");
+		}
+
+		List<PatchedVulnerability> all;
+		try {
+			all = Utils.readAllPatchedVulnerabilities(inventory);
+		} catch (IOException | CsvException e) {
+			throw new ParameterException(spec.commandLine(), e.getMessage());
+		}
+
+		if (all.size() == 0) {
+			Logger.tag("SYSTEM").info("Patch results contain no vulnerabilities.  Nothing to do.");
+			return 0;
+		}
+
+		try {
+			new SequentialPatcherInventoryService(patchStore)
+					.unpatchInventory(all, pretty, taskFailureStrategy);
 		} catch (IOException e) {
 			Logger.tag("SYSTEM").error(e, "Error initializing patcher ");
 		}

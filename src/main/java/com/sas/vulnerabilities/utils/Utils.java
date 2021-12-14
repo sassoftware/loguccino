@@ -5,6 +5,7 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvException;
+import com.sas.vulnerabilities.model.PatchedVulnerability;
 import com.sas.vulnerabilities.model.VulnerableArchive;
 import org.tinylog.Logger;
 
@@ -16,36 +17,58 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sas.vulnerabilities.utils.Constants.INVENTORY_SKIP_LINES;
+import static com.sas.vulnerabilities.utils.Constants.PATCH_RESULT_SKIP_LINES;
 import static com.sas.vulnerabilities.utils.Constants.TIMESTAMP;
 
 public class Utils {
 
-	public static String adapt(String input) {
+	public static String withoutColon(String input) {
 		if (OSValidator.isWindows()) {
 			return input.replaceAll(":", "");
 		}
 		return input;
 	}
+	public static String toArchivePath(String input) {
+		if (OSValidator.isWindows()) {
+			return input.replaceAll("\\\\", "/");
+		}
+		return input;
+	}
 
 	public static Set<VulnerableArchive> readAllVulnerabilities(String csvFile) throws IOException, CsvException {
-		Set<VulnerableArchive> allVulnerabilities = new HashSet<>();
+		Set<VulnerableArchive> all = new HashSet<>();
 		RFC4180Parser windowsFriendlyParser = new RFC4180ParserBuilder().build();
 		try (CSVReader reader = new CSVReaderBuilder(new FileReader(csvFile))
 				.withSkipLines(INVENTORY_SKIP_LINES)
 				.withCSVParser(windowsFriendlyParser).build()) {
 
-			List<String[]> allLines = reader.readAll();
-			for (String[] csvRow : allLines) {
-				VulnerableArchive v = VulnerableArchive.fromCsvRow(csvRow);
-				allVulnerabilities.add(v);
-			}
+			all = reader.readAll().stream()
+					.map(VulnerableArchive::fromCsvRow)
+					.collect(Collectors.toSet());
 		}
-		return allVulnerabilities;
+		return all;
+	}
+
+	public static List<PatchedVulnerability> readAllPatchedVulnerabilities(String csvFile) throws IOException, CsvException {
+		List<PatchedVulnerability> all;
+		RFC4180Parser windowsFriendlyParser = new RFC4180ParserBuilder().build();
+		try (CSVReader reader = new CSVReaderBuilder(new FileReader(csvFile))
+				.withSkipLines(PATCH_RESULT_SKIP_LINES)
+				.withCSVParser(windowsFriendlyParser).build()) {
+
+			all = reader.readAll().stream()
+					.map(PatchedVulnerability::fromCsvRow)
+					.collect(Collectors.toList());
+		}
+		return all;
 	}
 
 	@Deprecated
@@ -152,6 +175,12 @@ public class Utils {
 		return (path.equals("/proc") || path.startsWith("/proc/")) || (path.equals("/sys") || path.startsWith("/sys/"))
 				|| (path.equals("/dev") || path.startsWith("/dev/")) || (path.equals("/run") || path.startsWith("/run/"))
 				|| (path.equals("/var/run") || path.startsWith("/var/run/"));
+	}
+
+	public static String checksumMd5(File file)
+			throws IOException, NoSuchAlgorithmException {
+
+		return checksum(MessageDigest.getInstance("MD5"), file);
 	}
 
 	public static String checksum(MessageDigest digest,

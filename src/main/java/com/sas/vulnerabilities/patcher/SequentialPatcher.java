@@ -9,9 +9,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import static com.sas.vulnerabilities.utils.Constants.NESTED_PATH_SEPARATOR;
-import static com.sas.vulnerabilities.utils.Utils.adapt;
+import static com.sas.vulnerabilities.utils.Utils.withoutColon;
 
 /**
  * This patcher is designed to work only one row (one nested path) from csv file.
@@ -64,7 +65,8 @@ public class  SequentialPatcher extends AbstractPatcher {
 			}
 		}
 
-		Logger.info("Patched single cve {} to {} ", nestedPath, Paths.get(dstFile).toFile().getCanonicalPath());
+		Path dstFilePath = Paths.get(dstFile);
+		Logger.info("Patched single cve {} to {} ", nestedPath, dstFilePath.toFile().getCanonicalPath());
 	}
 
 	private void extractNextArchive(int currentArchive,
@@ -75,7 +77,7 @@ public class  SequentialPatcher extends AbstractPatcher {
 		Path currentDstDir = Files.createDirectories(Paths.get(tmpDir.toString(), String.valueOf(currentArchive)));
 		String archive = nestedList[currentArchive];
 
-		Path baseArchivePath = currentArchive == 0 ? Paths.get(archive) : Paths.get(prevLevelDir.toString(), adapt(archive)); // don't ask
+		Path baseArchivePath = currentArchive == 0 ? Paths.get(archive) : Paths.get(prevLevelDir.toString(), withoutColon(archive)); // don't ask
 		ArchiveCompressUtils.extractArchive(baseArchivePath.toString(), currentDstDir.toString());
 
 		if (++currentArchive < nestedList.length) {

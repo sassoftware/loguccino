@@ -21,6 +21,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
 
+import static com.sas.vulnerabilities.utils.Utils.toArchivePath;
+
 public class ArchiveCompressUtils {
 
 	public static void compressArchive(String dstFile, String folderToZip) throws IOException {
@@ -42,7 +44,7 @@ public class ArchiveCompressUtils {
 					// skip root dir, track only contents
 					if (relativePath.toString().equals("")) return FileVisitResult.CONTINUE;
 
-					ArchiveEntry archiveEntry = o.createArchiveEntry(dir, relativePath.toString());
+					ArchiveEntry archiveEntry = o.createArchiveEntry(dir, toArchivePath(relativePath.toString()));
 					o.putArchiveEntry(archiveEntry);
 					o.closeArchiveEntry();
 
@@ -67,7 +69,7 @@ public class ArchiveCompressUtils {
 
 					try {
 						ArchiveEntry archiveEntry = o
-								.createArchiveEntry(file, relativePath.toString());
+								.createArchiveEntry(file, toArchivePath(relativePath.toString()));
 						i = new FileInputStream(file.toString());
 
 						if (!ArchiveStreamUtils.isCompress() && Utils.isZipTarget(archiveEntry.getName())) {

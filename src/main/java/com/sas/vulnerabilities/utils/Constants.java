@@ -8,5 +8,6 @@ public class Constants {
     public static final String LOG4J_JNDI_LOOKUP = "org/apache/logging/log4j/core/lookup/JndiLookup.class";
     public static final String NESTED_PATH_SEPARATOR = "::";
     public static final int INVENTORY_SKIP_LINES = 1;
+    public static final int PATCH_RESULT_SKIP_LINES = 1;
     public static final String TIMESTAMP = DateTimeFormatter.ofPattern("ddMMyyyyHHmmss").format(ZonedDateTime.now());
 }
