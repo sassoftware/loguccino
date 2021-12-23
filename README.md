@@ -72,7 +72,7 @@ More information about the patch command is available via `./loguccino help patc
 
 ### Demo
 
-<img src="images/ux.svg" width="90%">
+<img src="images/ux.svg" width="100%">
 
 
 ## Known issues
