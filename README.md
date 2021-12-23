@@ -1,62 +1,85 @@
-![Logpresso Logo](logo.png)
+<img src="images/logo-svg.svg" width="62%">
 
-log4j2-scan is a single binary command-line tool for CVE-2021-44228 vulnerability scanning and mitigation patch. It also supports nested JAR file scanning and patch.
+# A Log4J2 CVE-2021-44228 Vulnerability Scanner and Patcher
 
-### Download
-* [log4j2-scan 1.2.5 (Windows x64)](https://github.com/logpresso/CVE-2021-44228-Scanner/releases/download/v1.2.5/logpresso-log4j2-scan-1.2.5-win64.7z)
-* [log4j2-scan 1.2.5 (Linux x64)](https://github.com/logpresso/CVE-2021-44228-Scanner/releases/download/v1.2.5/logpresso-log4j2-scan-1.2.5-linux.tar.gz)
-* [log4j2-scan 1.2.5 (Any OS, 10KB)](https://github.com/logpresso/CVE-2021-44228-Scanner/releases/download/v1.2.5/logpresso-log4j2-scan-1.2.5.jar)
+Links to download the latest version:
 
-### How to use
-Just run log4j2-scan.exe or log4j2-scan with target directory path.
+| Linux x64 with glibc2.17+ (RHEL7+)  | Windows & all other platforms |
+|---|---|
+| [Download Linux binary](https://)  | [Download Java .jar](https://) |  
 
-On Windows
+
+## What is this
+
+This project is an early fork of [logpresso/CVE-2021-44228-Scanner](https://github.com/logpresso/CVE-2021-44228-Scanner), initially modified to recursively inspect archives and to add support for tar/gz compression. Since the fork, the project has evolved in parallel to the original and implements many similar features, even though the majority of the code has been rewritten. While the original 'fix' functionality has been replaced with a `patch` method that supports some deep nested edge cases and is more tolerant to failure & rollback, the detection mechanism (the `scan` command) continues to work in a very similar way to the original. 
+
+
+## How do I get it
+
+You can download a version of the tool from the [Releases page](https://) or by following the links at the top of this page. The [native image](https://) is a standalone executable that will run on EL7 and later. The [jar file](https://) can be run with `java -jar` on JRE 1.8+. This is currently the best way to run this on other platforms and older releases of glibc (including Windows, AIX, Solaris, etc).
+
+After downloading the native image it's necessary to `chmod +x` the file before it can be run.
+
+## How do I use it
+
+The command syntax is the same regardless of whether you call the .jar or the native executable. For example, this:
+
 ```
-log4j2-scan [--fix] [--trace] target_path
-```
-On Linux
-```
-./log4j2-scan [--fix] [--trace] target_path
-```
-On UNIX (AIX, Solaris, and so on)
-```
-java -jar logpresso-log4j2-scan-1.2.5.jar [--fix] [--trace] target_path
-```
-
-If you add `--fix` option, this program will copy vulnerable original JAR file to .bak file, and create new JAR file without `org/apache/logging/log4j/core/lookup/JndiLookup.class` entry. In most environments, JNDI lookup feature will not be used. However, you must use this option at your own risk. It is necessary to shutdown any running JVM process before applying patch. Start affected JVM process after fix.
-
-If you want to automate patch job, use `--force-fix` option. With this option, this program will no longer prompt for confirmation.
-
-`(mitigated)` tag will be displayed if `org/apache/logging/log4j/core/lookup/JndiLookup.class` entry is removed from JAR file.
-
-If you add `--trace` option, this program will print all visited directories and files. Use this option only for debugging.
-
-On Windows:
-```
-CMD> log4j2-scan.exe D:\tmp
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\elasticsearch-7.16.0\bin\elasticsearch-sql-cli-7.16.0.jar, log4j 2.11.1
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\elasticsearch-7.16.0\lib\log4j-core-2.11.1.jar, log4j 2.11.1
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\flink-1.14.0\lib\log4j-core-2.14.1.jar, log4j 2.14.1
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\logstash-7.16.0\logstash-core\lib\jars\log4j-core-2.14.0.jar, log4j 2.14.0
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\logstash-7.16.0\vendor\bundle\jruby\2.5.0\gems\logstash-input-tcp-6.2.1-java\vendor\jar-dependencies\org\logstash\inputs\logstash-input-tcp\6.2.1\logstash-input-tcp-6.2.1.jar, log4j 2.9.1
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\solr-7.7.3\solr-7.7.3\contrib\prometheus-exporter\lib\log4j-core-2.11.0.jar, log4j 2.11.0
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\solr-7.7.3\solr-7.7.3\server\lib\ext\log4j-core-2.11.0.jar, log4j 2.11.0
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\solr-8.11.0\contrib\prometheus-exporter\lib\log4j-core-2.14.1.jar, log4j 2.14.1
-[*] Found CVE-2021-44228 vulnerability in D:\tmp\solr-8.11.0\server\lib\ext\log4j-core-2.14.1.jar, log4j 2.14.1
-
-Scanned 5047 directories and 26251 files
-Found 9 vulnerable files
-Completed in 0.42 seconds
+./loguccino help
 ```
 
-### How it works
-Run in 5 steps:
-1. Find all .jar, .war, .ear files recursively.
-2. Find `META-INF/maven/org.apache.logging.log4j/log4j-core/pom.properties` entry from JAR file.
-3. Read groupId, artifactId, and version.
-4. Compare log4j2 version and print vulnerable version.
-5. If --fix option is used, backup vulnerable file and patch it.
-   * For example, original vulnerable.jar is copied to vulnerable.jar.bak
+is functionally identical to this
 
-### Contact
-If you have any question or issue, create an issue in this repository.
+```
+java -jar ./loguccino-[version].jar help
+```
+
+The `loguccino help` command provides documentation on commands that are available.
+
+### Scanning for vulnerable .jars
+
+```
+./loguccino scan /path/to/approot 
+```
+
+This will traverse all subdirectories in `/path/to/approot`, including recursively traversing all nested .tar.gz, .tgz, .tar, .zip, .ear, .war and .jar archives.
+
+A .csv file by the name of `loguccino-[datetime].csv` will be created in the working directory, containing the following data:
+
+- **AffectedFile** is the full path on the filesystem to the file that was found to contain the vulnerability. Example value: 
+`/opt/sas/config/Lev1/Web/Staging/sas.webreportstudio4.4.21w47AIX.ear/install/deploy/21w47SASConfig/Lev5/Web/Staging/sas.webreportstudio4.4.21w47AIX.ear`
+- **NestedPath** is the path within the archived file where the vulnerability was found. For example, here the log4j-core-2.1.jar file was found in the WRS .war archive, packaged inside the .ear archive (AffectedFile above)
+`opt/sas/config/Lev1/Web/Staging/sas.webreportstudio4.4.21w47AIX.ear::sas.webreportstudio.war::WEB-INF/lib/log4j-core-2.1.jar`
+- **AffectedVersion** is the version of Log4J that was found within the affected file  on the nested path.
+- **Patched** signifies whether this instance of this vulnerable Log4J jar within this archive has already been patched.
+
+More information about the scan command is available via `./loguccino help scan`.
+
+### Patching vulnerable .jars
+
+If vulnerabilities are found, the `loguccino-[datetime].csv` is used as an input to the patch command:
+
+```
+./loguccino patch ./loguccino-23122021003311.csv
+```
+
+This removes each vulnerability that was found, and creates a `patch-[timestamp]` directory containing a backup of each file that was patched. Where a file was patched for multiple vulnerabilities (such as a larger backup archive containing multiple tools or software releases), multiple versions of the patched file are backed up at each stage of the process to enable staged rollback in case of failure.
+
+> **Note**:  
+> Patching a file on disk does not patch the version of the program already running on the host. Remember that you must stop the relevant services / applications before patching and restart them after the patch for the changes to take effect.
+
+More information about the patch command is available via `./loguccino help patch`.
+
+## Known issues
+
+### Traversal of corrupted archives
+
+When scanning for vulnerabilities, some archives may be reported as corrupted (this also happens with nested archives where compression methods don't match the extension of the archive). The scan command will print the path to these in the `logpresso-[datetime].log`. If they're deemed significant, these archives should be decompressed and inspected (or scanned) manually to confirm that they are in fact corrupted.
+
+
+## Unknown issues
+
+If you encounter any bugs or unexpected behavior, please [open an issue](https://github.com/sassoftware/loguccino/issues/new) and attach any steps to reproduce the bug alongside other background information. 
+
+Pull requests and updates to the code are welcome and encouraged. 
+
