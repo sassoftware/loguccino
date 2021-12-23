@@ -79,7 +79,7 @@ More information about the patch command is available via `./loguccino help patc
 
 ### Traversal of corrupted archives
 
-When scanning for vulnerabilities, some archives may be reported as corrupted (this also happens with nested archives where compression methods don't match the extension of the archive). The scan command will print the path to these in the `logpresso-[datetime].log`. If they're deemed significant, these archives should be decompressed and inspected (or scanned) manually to confirm that they are in fact corrupted.
+When scanning for vulnerabilities, some archives may be reported as corrupted (this also happens with nested archives where compression methods don't match the extension of the archive). The scan command will print the path to these in the `loguccino-[datetime].log`. If they're deemed significant, these archives should be decompressed and inspected (or scanned) manually to confirm that they are in fact corrupted.
 
 
 ## Unknown issues
