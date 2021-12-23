@@ -70,6 +70,11 @@ This removes each vulnerability that was found, and creates a `patch-[timestamp]
 
 More information about the patch command is available via `./loguccino help patch`.
 
+### Demo
+
+<img src="images/ux.svg" width="90%">
+
+
 ## Known issues
 
 ### Traversal of corrupted archives
