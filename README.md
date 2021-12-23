@@ -6,7 +6,7 @@ Links to download the latest version:
 
 | Linux x64 with glibc2.17+ (RHEL7+)  | Windows & all other platforms |
 |---|---|
-| [Download Linux binary](https://)  | [Download Java .jar](https://) |  
+| [Download Linux binary](https://github.com/sassoftware/loguccino/releases/download/v3.0.0/loguccino)  | [Download Java .jar](https://github.com/sassoftware/loguccino/releases/download/v3.0.0/loguccino-3.0.0-30-gef31a0a-all.jar) |  
 
 
 ## What is this
@@ -16,7 +16,7 @@ This project is an early fork of [logpresso/CVE-2021-44228-Scanner](https://gith
 
 ## How do I get it
 
-You can download a version of the tool from the [Releases page](https://) or by following the links at the top of this page. The [native image](https://) is a standalone executable that will run on EL7 and later. The [jar file](https://) can be run with `java -jar` on JRE 1.8+. This is currently the best way to run this on other platforms and older releases of glibc (including Windows, AIX, Solaris, etc).
+You can download a version of the tool from the [Releases page](https://github.com/sassoftware/loguccino/releases/tag/v3.0.0) or by following the links at the top of this page. The [native image](https://github.com/sassoftware/loguccino/releases/download/v3.0.0/loguccino) is a standalone executable that will run on EL7 and later. The [jar file](https://github.com/sassoftware/loguccino/releases/download/v3.0.0/loguccino-3.0.0-30-gef31a0a-all.jar) can be run with `java -jar` on JRE 1.8+. This is currently the best way to run this on other platforms and older releases of glibc (including Windows, AIX, Solaris, etc).
 
 After downloading the native image it's necessary to `chmod +x` the file before it can be run.
 
