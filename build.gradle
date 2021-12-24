@@ -38,6 +38,15 @@ compileJava {
     options.compilerArgs += ["-Aproject=${project.group}/${project.name}"]
 }
 
+jar {
+    manifest {
+        attributes(
+                "Implementation-Title": project.name,
+                "Implementation-Version": archiveVersion
+        )
+    }
+}
+
 shadowJar {
     manifest {
         attributes(
