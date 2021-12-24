@@ -40,13 +40,18 @@ public class PatchCommand extends BaseSubcommand implements Callable<Integer> {
 					"Default value: ./loguccino-patch-{date: ddMMyyyyHHmmss}"
 			})
 	public void setPatchStore(Path patchStore) {
-		if (patchStore != null) {
-			if (Files.isRegularFile(patchStore) || !Files.isWritable(patchStore)) {
+		try {
+			if (Utils.isEmpty(patchStore)) {
+				this.patchStore = patchStore;
+			} else if (Files.exists(patchStore)) {
 				throw new ParameterException(spec.commandLine(),
-						String.format("Invalid value '%s' for option '--patch-store': " +
-								"value is not a writable directory path", patchStore));
+						String.format("Invalid value %s for option '--patch-store': " +
+								"not an empty directory", patchStore));
+			} else {
+				this.patchStore = patchStore;
 			}
-			this.patchStore = patchStore;
+		} catch (IOException e) {
+			throw new ParameterException(spec.commandLine(), "Invalid value %s for option '--patch-store': ", e);
 		}
 	}
 
@@ -77,11 +82,6 @@ public class PatchCommand extends BaseSubcommand implements Callable<Integer> {
 		ArchiveStreamUtils.setCompress(compress);
 		Logger.tag("SYSTEM").info("Started patch from inventory using inventory scan results " + inventory);
 
-		Path inventoryPath = Paths.get(inventory);
-		if (Files.notExists(inventoryPath) || !Files.isRegularFile(inventoryPath)) {
-			throw new ParameterException(spec.commandLine(), "Invalid patch path, expecting inventory Path file.");
-		}
-
 		Set<VulnerableArchive> allVulnerabilities;
 		try {
 			allVulnerabilities = Utils.readAllVulnerabilities(inventory);
@@ -107,11 +107,6 @@ public class PatchCommand extends BaseSubcommand implements Callable<Integer> {
 		ArchiveStreamUtils.setCompress(compress);
 		Logger.tag("SYSTEM").info("Started revert from inventory using patch results " + inventory);
 
-		Path inventoryPath = Paths.get(inventory);
-		if (Files.notExists(inventoryPath) || !Files.isRegularFile(inventoryPath)) {
-			throw new ParameterException(spec.commandLine(), "Invalid patch results path, expecting patch csv file.");
-		}
-
 		List<PatchedVulnerability> all;
 		try {
 			all = Utils.readAllPatchedVulnerabilities(inventory);
@@ -128,7 +123,7 @@ public class PatchCommand extends BaseSubcommand implements Callable<Integer> {
 			new SequentialPatcherInventoryService(patchStore)
 					.unpatchInventory(all, pretty, taskFailureStrategy);
 		} catch (IOException e) {
-			Logger.tag("SYSTEM").error(e, "Error initializing patcher ");
+			Logger.tag("SYSTEM").error(e, "Error initializing patcher");
 		}
 		return 0;
 	}
