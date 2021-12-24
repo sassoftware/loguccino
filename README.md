@@ -1,4 +1,5 @@
-<img src="images/logo-svg.svg" width="62%">
+<img src="images/logo-svg.svg#gh-light-mode-only" width="62%">
+<img src="images/logo-svg-dark.svg#gh-dark-mode-only" width="62%">
 
 # A Log4J2 CVE-2021-44228 Vulnerability Scanner and Patcher
 
