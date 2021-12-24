@@ -1,6 +1,7 @@
 package com.sas.vulnerabilities;
 
 import com.sas.vulnerabilities.utils.ManifestVersionProvider;
+import com.sas.vulnerabilities.utils.ShortErrorMessageHandler;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Command;
@@ -52,6 +53,7 @@ public class Loguccino implements Callable<Integer> {
 
 	public static void main(String... args) {
 		int exitCode = new CommandLine(new Loguccino())
+				.setParameterExceptionHandler(new ShortErrorMessageHandler())
 				.setExecutionStrategy(LoggingMixin::executionStrategy)
 				.execute(args);
 		System.exit(exitCode);

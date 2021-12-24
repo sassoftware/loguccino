@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -216,5 +217,15 @@ public class Utils {
 		String[] split = nestedPath.split(Constants.NESTED_PATH_SEPARATOR);
 		split[0] = originalFileBackup.toString();
 		return String.join(Constants.NESTED_PATH_SEPARATOR, split);
+	}
+
+	public static boolean isEmpty(Path path) throws IOException {
+		if (Files.isDirectory(path)) {
+			try (DirectoryStream<Path> directory = Files.newDirectoryStream(path)) {
+				return !directory.iterator().hasNext();
+			}
+		}
+
+		return false;
 	}
 }
