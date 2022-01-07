@@ -9,11 +9,11 @@ Links to download the latest version:
 |------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | [Download Linux binary](https://github.com/sassoftware/loguccino/releases/latest/download/loguccino) | [Download Java .jar](https://github.com/sassoftware/loguccino/releases/latest/download/loguccino-all.jar) |  
 
+> 🚑 Note: SAS customers looking to patch their SAS 9.4 or SAS Viya 3.x deployments should **follow the specific instructions provided in the [SAS Help Center documentation](https://go.documentation.sas.com/doc/en/log4j/1.0/p1pymcg1f06injn10rho5mkmmhe4.htm).**
 
 ## What is this
 
 This project is an early fork of [logpresso/CVE-2021-44228-Scanner](https://github.com/logpresso/CVE-2021-44228-Scanner), initially modified to recursively inspect archives and to add support for tar/gz compression. Since the fork, the project has evolved in parallel to the original and implements many similar features, even though the majority of the code has been rewritten. While the original 'fix' functionality has been replaced with a `patch` method that supports some deep nested edge cases and is more tolerant to failure & rollback, the detection mechanism (the `scan` command) continues to work in a very similar way to the original.
-
 
 ## How do I get it
 
