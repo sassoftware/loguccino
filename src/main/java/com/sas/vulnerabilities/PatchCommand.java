@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 @Command(name = "patch", description = "Patches identified vulnerabilities")
@@ -82,7 +81,7 @@ public class PatchCommand extends BaseSubcommand implements Callable<Integer> {
 		ArchiveStreamUtils.setCompress(compress);
 		Logger.tag("SYSTEM").info("Started patch from inventory using inventory scan results " + inventory);
 
-		Set<VulnerableArchive> allVulnerabilities;
+		List<VulnerableArchive> allVulnerabilities;
 		try {
 			allVulnerabilities = Utils.readAllVulnerabilities(inventory);
 		} catch (IOException | CsvException e) {
