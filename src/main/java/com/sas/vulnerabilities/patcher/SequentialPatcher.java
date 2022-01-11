@@ -7,8 +7,14 @@ import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.Set;
 
 import static com.sas.vulnerabilities.utils.Constants.NESTED_PATH_SEPARATOR;
@@ -45,6 +51,11 @@ public class  SequentialPatcher extends AbstractPatcher {
 	public void patchSingleCVE(String nestedPath, String srcFile, String dstFile, String tempDir) throws IOException, ArchiveException {
 		Logger.info("Patching path: " + srcFile);
 
+		Path srcFilePath = Paths.get(srcFile);
+		Set<PosixFilePermission> filePermissions = Files.getPosixFilePermissions(srcFilePath);
+		GroupPrincipal group = Files.readAttributes(srcFilePath, PosixFileAttributes.class, LinkOption.NOFOLLOW_LINKS).group();
+		UserPrincipal owner = Files.getOwner(srcFilePath);
+
 		String[] nestedList = nestedPath.split(NESTED_PATH_SEPARATOR);
 		if (nestedList.length == 0) {
 			System.out.println("No nested path provided for patcher");
@@ -66,6 +77,10 @@ public class  SequentialPatcher extends AbstractPatcher {
 		}
 
 		Path dstFilePath = Paths.get(dstFile);
+		Files.setPosixFilePermissions(dstFilePath, filePermissions);
+		Files.setOwner(dstFilePath, owner);
+		Files.getFileAttributeView(dstFilePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+
 		Logger.info("Patched single cve {} to {} ", nestedPath, dstFilePath.toFile().getCanonicalPath());
 	}
 

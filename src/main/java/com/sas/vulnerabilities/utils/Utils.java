@@ -44,8 +44,8 @@ public class Utils {
 		return input;
 	}
 
-	public static Set<VulnerableArchive> readAllVulnerabilities(String csvFile) throws IOException, CsvException {
-		Set<VulnerableArchive> all = new HashSet<>();
+	public static List<VulnerableArchive> readAllVulnerabilities(String csvFile) throws IOException, CsvException {
+		List<VulnerableArchive> all = new ArrayList<>();
 		RFC4180Parser windowsFriendlyParser = new RFC4180ParserBuilder().build();
 		try (CSVReader reader = new CSVReaderBuilder(new FileReader(csvFile))
 				.withSkipLines(INVENTORY_SKIP_LINES)
@@ -53,7 +53,8 @@ public class Utils {
 
 			all = reader.readAll().stream()
 					.map(VulnerableArchive::fromCsvRow)
-					.collect(Collectors.toSet());
+					.distinct()
+					.collect(Collectors.toList());
 		}
 		return all;
 	}

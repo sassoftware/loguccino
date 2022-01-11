@@ -10,19 +10,16 @@ import lukfor.progress.TaskService;
 import lukfor.progress.tasks.ITaskRunnable;
 import lukfor.progress.tasks.Task;
 import lukfor.progress.tasks.TaskFailureStrategy;
-import lukfor.progress.tasks.monitors.ITaskMonitor;
 import org.tinylog.Logger;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import java.util.Vector;
 
 public class SequentialPatcherInventoryService {
@@ -48,7 +45,7 @@ public class SequentialPatcherInventoryService {
 		this.inventoryPatcherTempDirs = patchStore.resolve("patcherTemps");
 	}
 
-	public void patchInventory(Set<VulnerableArchive> allVulnerabilities, boolean pretty, TaskFailureStrategy taskFailureStrategy) {
+	public void patchInventory(List<VulnerableArchive> allVulnerabilities, boolean pretty, TaskFailureStrategy taskFailureStrategy) {
 		this.outputCsvFile = patchStore.resolve("patch.csv");
 
 		TaskService.setAnsiSupport(pretty);
