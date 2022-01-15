@@ -19,13 +19,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 
 import static com.sas.vulnerabilities.utils.Utils.toArchivePath;
 
 public class ArchiveCompressUtils {
 
-	public static void compressArchive(String dstFile, String folderToZip) throws IOException {
+	public static void compressArchive(String dstFile, String folderToZip, List<String> entriesOrder) throws IOException {
 		Optional<ArchiveOutputStream> archiveOutputStreamOpt = ArchiveStreamUtils
 				.createArchiveOutputStream(dstFile, new FileOutputStream(dstFile));
 		if (!archiveOutputStreamOpt.isPresent()) {
@@ -36,31 +39,18 @@ public class ArchiveCompressUtils {
 		try {
 			Path folderToZipPath = Paths.get(folderToZip);
 
-			Files.walkFileTree(folderToZipPath, new FileVisitor<Path>() {
-				@Override
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-					Path relativePath = folderToZipPath.relativize(dir);
+			for (String entry : entriesOrder) {
+				Path path = folderToZipPath.resolve(entry);
+				if (!path.toFile().exists()) continue;
 
-					// skip root dir, track only contents
-					if (relativePath.toString().equals("")) return FileVisitResult.CONTINUE;
-
-					ArchiveEntry archiveEntry = o.createArchiveEntry(dir, toArchivePath(relativePath.toString()));
+				if (path.toFile().isDirectory()) {
+					ArchiveEntry archiveEntry = o.createArchiveEntry(path, toArchivePath(entry));
 					o.putArchiveEntry(archiveEntry);
 					o.closeArchiveEntry();
-
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
-					Path relativePath = folderToZipPath.relativize(path);
-
-					// skip root dir, track only contents
-					if (relativePath.toString().equals("")) return FileVisitResult.CONTINUE;
-
+				} else {
 					Path jndiPath = Paths.get(Constants.LOG4J_JNDI_LOOKUP);
-					if (relativePath.equals(jndiPath)) {
-						return FileVisitResult.CONTINUE;
+					if (Paths.get(entry).equals(jndiPath)) {
+						continue;
 					}
 
 					File file = path.toFile();
@@ -69,7 +59,7 @@ public class ArchiveCompressUtils {
 
 					try {
 						ArchiveEntry archiveEntry = o
-								.createArchiveEntry(file, toArchivePath(relativePath.toString()));
+								.createArchiveEntry(file, toArchivePath(entry));
 						i = new FileInputStream(file.toString());
 
 						if (!ArchiveStreamUtils.isCompress() && Utils.isZipTarget(archiveEntry.getName())) {
@@ -89,21 +79,8 @@ public class ArchiveCompressUtils {
 					} finally {
 						IOUtils.closeQuietly(i);
 					}
-
-					return FileVisitResult.CONTINUE;
 				}
-
-				@Override
-				public FileVisitResult visitFileFailed(Path path, IOException exc) throws IOException {
-					// io exception should be propagated to the caller
-					return FileVisitResult.TERMINATE;
-				}
-
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-					return FileVisitResult.CONTINUE;
-				}
-			});
+			}
 		} finally {
 			o.finish();
 			o.close();
@@ -111,7 +88,8 @@ public class ArchiveCompressUtils {
 		}
 	}
 
-	public static void extractArchive(String archivePath, String destDirectory) throws IOException, ArchiveException {
+	public static List<String> extractArchive(String archivePath, String destDirectory) throws IOException, ArchiveException {
+		List<String> entries = new ArrayList<>();
 
 		InputStream inputStream = null;
 		try {
@@ -120,13 +98,14 @@ public class ArchiveCompressUtils {
 			Optional<ArchiveInputStream> archiveInputStreamOpt = ArchiveStreamUtils
 					.createArchiveInputStream(archivePath, inputStream);
 			if (!archiveInputStreamOpt.isPresent()) {
-				throw new IOException("Could create appropriate archive input stream for " + archivePath);
+				throw new IOException("Could not create appropriate archive input stream for " + archivePath);
 			}
 
 			ArchiveInputStream archiveInputStream = archiveInputStreamOpt.get();
 
 			ArchiveEntry archiveEntry = null;
 			while ((archiveEntry = archiveInputStream.getNextEntry()) != null) {
+				entries.add(archiveEntry.getName());
 				Path path = Paths.get(destDirectory, archiveEntry.getName());
 				File file = path.toFile();
 				if (archiveEntry.isDirectory()) {
@@ -149,5 +128,6 @@ public class ArchiveCompressUtils {
 			IOUtils.closeQuietly(inputStream);
 		}
 
+		return entries;
 	}
 }
