@@ -1,6 +1,7 @@
 package com.sas.vulnerabilities.patcher;
 
 import com.sas.vulnerabilities.utils.ArchiveCompressUtils;
+import com.sas.vulnerabilities.utils.OSValidator;
 import com.sas.vulnerabilities.utils.Utils;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.tinylog.Logger;
@@ -57,9 +58,14 @@ public class  SequentialPatcher extends AbstractPatcher {
 		Logger.info("Patching path: " + srcFile);
 
 		Path srcFilePath = Paths.get(srcFile);
-		Set<PosixFilePermission> filePermissions = Files.getPosixFilePermissions(srcFilePath);
-		GroupPrincipal group = Files.readAttributes(srcFilePath, PosixFileAttributes.class, LinkOption.NOFOLLOW_LINKS).group();
-		UserPrincipal owner = Files.getOwner(srcFilePath);
+		Set<PosixFilePermission> filePermissions = null;
+		GroupPrincipal group = null;
+		UserPrincipal owner = null;
+		if (OSValidator.isUnix()) {
+			filePermissions = Files.getPosixFilePermissions(srcFilePath);
+			group = Files.readAttributes(srcFilePath, PosixFileAttributes.class, LinkOption.NOFOLLOW_LINKS).group();
+			owner = Files.getOwner(srcFilePath);
+		}
 
 		String[] nestedList = nestedPath.split(NESTED_PATH_SEPARATOR);
 		if (nestedList.length == 0) {
@@ -83,9 +89,11 @@ public class  SequentialPatcher extends AbstractPatcher {
 		}
 
 		Path dstFilePath = Paths.get(dstFile);
-		Files.setPosixFilePermissions(dstFilePath, filePermissions);
-		Files.setOwner(dstFilePath, owner);
-		Files.getFileAttributeView(dstFilePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+		if (OSValidator.isUnix()) {
+			if (filePermissions != null) Files.setPosixFilePermissions(dstFilePath, filePermissions);
+			if (owner != null) Files.setOwner(dstFilePath, owner);
+			if (group != null) Files.getFileAttributeView(dstFilePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+		}
 
 		Logger.info("Patched single cve {} to {} ", nestedPath, dstFilePath.toFile().getCanonicalPath());
 	}
