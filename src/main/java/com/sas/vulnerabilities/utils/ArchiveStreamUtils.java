@@ -19,14 +19,15 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 
@@ -40,8 +41,9 @@ public class ArchiveStreamUtils {
 		if (Utils.isZipTarget(path)) {
 			archiveInputStream = new ZipArchiveInputStream(in);
 		} else if (Utils.isTgzTarget(path)) {
-			GZIPInputStream gzipInputStream = new GZIPInputStream(in);
-			archiveInputStream = new TarArchiveInputStream(gzipInputStream);
+			InputStream bi = new BufferedInputStream(in);
+			InputStream gzi = new GzipCompressorInputStream(bi);
+			archiveInputStream = new TarArchiveInputStream(gzi);
 		} else if (Utils.isTarTarget(path)) {
 			archiveInputStream = new TarArchiveInputStream(in);
 		} else if (Utils.isTarBz2Target(path)) {
